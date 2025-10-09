@@ -6,8 +6,9 @@ client = RemoteAPIClient()
 sim = client.getObject('sim')
 
 v_Max = 3 # Units/sec
-acceleration = 0.1 # Units/sec^2
-cornering_weight = 1
+acceleration = 4 # Units/sec^2
+cornering_weight = 0.9
+min_corner_speed = 0.7
 
 current_left = 0
 current_right = 0
@@ -36,25 +37,34 @@ def ramp_vel(current_vel,target_vel,ramp,dt):
         current_vel = max(current_vel,target_vel)
     return current_vel
 
+input_given = False
+
 while True:
     if keyboard.is_pressed("up") or keyboard.is_pressed("w"):
         target_left = v_Max
         target_right = v_Max
-    input_given = True
+        input_given = True
 
     if keyboard.is_pressed("down") or keyboard.is_pressed("s"):
         target_left = 0 - v_Max
         target_right = 0 - v_Max
-    input_given = True
+        input_given = True
 
     if keyboard.is_pressed("left") or keyboard.is_pressed("a"):
         target_left = target_left * (1-cornering_weight)
-    input_given = True
+        input_given = True
+        if target_left <= 0.8 and target_right <= 0.8:
+            target_left = - min_corner_speed
+            target_right = min_corner_speed
 
     if keyboard.is_pressed("right") or keyboard.is_pressed("d"):
-        target_right = target_right * (1-cornering_weight)    
-    input_given = True
-    if not input_given:
+        target_right = target_right * (1-cornering_weight)   
+        input_given = True
+        if target_left <= 0.8 and target_right <= 0.8:
+            target_left =  min_corner_speed
+            target_right = - min_corner_speed
+
+    if input_given == False:
         target_right = 0
         target_left = 0
         
@@ -65,7 +75,7 @@ while True:
     sim.setJointTargetVelocity(left_motor, current_left)
     sim.setJointTargetVelocity(right_motor, current_right)
 
-    print("Left: ", left_motor, "Right: ", right_motor)
+    print("Left (Current,Target): ",current_left, target_left , "Right(Current,Target): ", current_right, target_right)
 
     if keyboard.is_pressed("esc"):
         stop()
