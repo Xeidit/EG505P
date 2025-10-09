@@ -43,6 +43,15 @@ while True:
     else:
         stop()
 
+
+
+
+
+
+
+
+
+    
     if keyboard.is_pressed("esc"):
         stop()
         break
