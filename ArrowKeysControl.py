@@ -1,57 +1,52 @@
 import keyboard
+import time
 from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 
 client = RemoteAPIClient()
 sim = client.getObject('sim')
 
-print("Connected")
+v_Max = 3
+ramp = 0.1
+current_left = 0
+current_right = 0
 
+print("Connected")
 print("Use arrow keys to control the robot. Press ESC to exit.")
 
 left_motor = sim.getObject('/leftMotor')
 right_motor = sim.getObject('/rightMotor')
 
-def move_forward():
-    sim.setJointTargetVelocity(left_motor, 2.0)
-    sim.setJointTargetVelocity(right_motor, 2.0)
-
-def move_backward():
-    sim.setJointTargetVelocity(left_motor, -2.0)
-    sim.setJointTargetVelocity(right_motor, -2.0)
-
-def turn_left():
-    sim.setJointTargetVelocity(left_motor, -1.0)
-    sim.setJointTargetVelocity(right_motor, 1.0)
-
-def turn_right():
-    sim.setJointTargetVelocity(left_motor, 1.0)
-    sim.setJointTargetVelocity(right_motor, -1.0)
-
 def stop():
-    sim.setJointTargetVelocity(left_motor, 0.0)
-    sim.setJointTargetVelocity(right_motor, 0.0)
+        current_left = 0 
+        current_right = 0
 
 while True:
     if keyboard.is_pressed("up") or keyboard.is_pressed("w"):
-        move_forward()
-    elif keyboard.is_pressed("down") or keyboard.is_pressed("s"):
-        move_backward()
-    elif keyboard.is_pressed("left") or keyboard.is_pressed("a"):
-        turn_left()
-    elif keyboard.is_pressed("right") or keyboard.is_pressed("d"):
-        turn_right()
+        current_left = current_left + ramp  
+        current_right = current_right + ramp
+
+    if keyboard.is_pressed("down") or keyboard.is_pressed("s"):
+        current_left = current_left - ramp  
+        current_right = current_right - ramp
+
+    if keyboard.is_pressed("left") or keyboard.is_pressed("a"):
+        current_left = current_left - ramp  
+        current_right = current_right + ramp        
+
+    if keyboard.is_pressed("right") or keyboard.is_pressed("d"):
+        current_left = current_left + ramp  
+        current_right = current_right - ramp        
+
     else:
         stop()
 
+    sim.setJointTargetVelocity(left_motor, current_left)
+    sim.setJointTargetVelocity(right_motor, current_right)
+
+    print("Left: ", left_motor, "Right: ", right_motor)
 
 
-
-
-
-
-
-
-    
     if keyboard.is_pressed("esc"):
         stop()
         break
+    time.sleep(0.1)
