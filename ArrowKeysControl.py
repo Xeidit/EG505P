@@ -22,8 +22,7 @@ print("Use arrow keys to control the robot. Press ESC to exit.")
 
 left_motor = sim.getObject('/leftMotor')
 right_motor = sim.getObject('/rightMotor')
-#right_motor = sim.getObject('PioneerP3DX')
-
+chassis = sim.getObject('/PioneerP3DX')
 
 def stop():
         current_left = 0 
@@ -72,10 +71,8 @@ while True:
     input_given = False
     current_left = ramp_vel(current_left,target_left,acceleration,dt)
     current_right = ramp_vel(current_right,target_right,acceleration,dt)
-
     sim.setJointTargetVelocity(left_motor, current_left)
     sim.setJointTargetVelocity(right_motor, current_right)
-
     print("Left (Current,Target): ",current_left, target_left , "Right(Current,Target): ", current_right, target_right)
 
     if keyboard.is_pressed("esc"):
@@ -83,4 +80,6 @@ while True:
         break
     time.sleep(dt)
 
-    # Get position data
+    #Get robot position
+    position = sim.getObjectPosition(chassis,sim.handle_world)
+    print("/n",position)
