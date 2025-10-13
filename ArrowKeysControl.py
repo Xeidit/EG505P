@@ -22,6 +22,7 @@ print("Use arrow keys to control the robot. Press ESC to exit.")
 
 left_motor = sim.getObject('/leftMotor')
 right_motor = sim.getObject('/rightMotor')
+#right_motor = sim.getObject('PioneerP3DX')
 
 
 def stop():
@@ -81,3 +82,5 @@ while True:
         stop()
         break
     time.sleep(dt)
+
+    # Get position data
