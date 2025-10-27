@@ -7,8 +7,8 @@ from coppeliasim_zmqremoteapi_client import RemoteAPIClient
 client = RemoteAPIClient()
 sim = client.getObject('sim')
 
-v_Max = 3 # Units/sec
-acceleration = 4 # Units/sec^2
+v_Max = 5 # Units/sec
+acceleration = 8 # Units/sec^2
 cornering_weight = 0.9
 min_corner_speed = 0.7
 
@@ -19,9 +19,9 @@ target_right = 0
 
 leftCount = 0
 rightCount = 0
-CentreCount = 0
+centreCount = 0
 
-dt = 0.1
+dt = 0.05
 
 print("Connected")
 print("Use arrow keys to control the robot. Press ESC to exit.")
@@ -90,24 +90,28 @@ while True:
     cv2.waitKey(1)
 
     #Save Training Images
-    if keyboard.is_pressed("j"):
+    if keyboard.is_pressed("d"): #Capures pictures of too far left when you press the right key
         leftCount = leftCount + 1
-        fileName = 
-        cv2.imwrite("Left/test.jpg",image)
-        print("Image Saved")
+        fileName = "Left/" + str(leftCount) + ".png"
+        cv2.imwrite(fileName,image)
+        print("Left Image Saved")
 
-    if keyboard.is_pressed("l"):
-        leftCount = leftCount + 1
-        cv2.imwrite("right/test.jpg",image)
-        print("Image Saved")
+    if keyboard.is_pressed("a"): #Captures pictures of too far right when you press left key
+        rightCount = rightCount + 1
+        fileName = "Right/" + str(rightCount) + ".png"
+        cv2.imwrite(fileName,image)
+        print("Right Image Saved")
 
-    if keyboard.is_pressed("i"):
-        leftCount = leftCount + 1
-        cv2.imwrite("Left/test.jpg",image)
-        print("Image Saved")
+    '''
+    if keyboard.is_pressed("i"): 
+        centreCount = centreCount + 1 #Captures pictures when press
+        fileName = "Centre/" + str(centreCount) + ".png"
+        cv2.imwrite(fileName,image)
+        print("Centre Image Saved")
+    '''
+
 
     #End Sim    
-
     if keyboard.is_pressed("esc"):
         stop()
         break
