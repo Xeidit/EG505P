@@ -21,7 +21,7 @@ leftCount = 0
 rightCount = 0
 centreCount = 0
 
-dt = 0.05
+dt = 0.025
 
 print("Connected")
 print("Use arrow keys to control the robot. Press ESC to exit.")
