@@ -84,6 +84,8 @@ while True:
     image = cv2.flip(image, 0)  # Flip vertically
     cv2.imshow('Vision Sensor Feed', image)
     cv2.waitKey(1)
+    if keyboard.is_pressed("l"):
+        image.save("test.png")
 
     if keyboard.is_pressed("esc"):
         stop()
