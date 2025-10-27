@@ -17,6 +17,10 @@ current_right = 0
 target_left = 0
 target_right = 0
 
+leftCount = 0
+rightCount = 0
+CentreCount = 0
+
 dt = 0.1
 
 print("Connected")
@@ -84,8 +88,25 @@ while True:
     image = cv2.flip(image, 0)  # Flip vertically
     cv2.imshow('Vision Sensor Feed', image)
     cv2.waitKey(1)
+
+    #Save Training Images
+    if keyboard.is_pressed("j"):
+        leftCount = leftCount + 1
+        fileName = 
+        cv2.imwrite("Left/test.jpg",image)
+        print("Image Saved")
+
     if keyboard.is_pressed("l"):
-        image.save("test.png")
+        leftCount = leftCount + 1
+        cv2.imwrite("right/test.jpg",image)
+        print("Image Saved")
+
+    if keyboard.is_pressed("i"):
+        leftCount = leftCount + 1
+        cv2.imwrite("Left/test.jpg",image)
+        print("Image Saved")
+
+    #End Sim    
 
     if keyboard.is_pressed("esc"):
         stop()
