@@ -20,6 +20,8 @@ target_right = 0
 leftCount = 0
 rightCount = 0
 centreCount = 0
+centreLeftCount = 0
+centreRightCount = 0
 
 dt = 0.025
 
@@ -81,7 +83,7 @@ while True:
     sim.setJointTargetVelocity(left_motor, current_left)
     sim.setJointTargetVelocity(right_motor, current_right)
 
-    print("Left (Current,Target): ",current_left, target_left , "Right(Current,Target): ", current_right, target_right)
+    #print("Left (Current,Target): ",current_left, target_left , "Right(Current,Target): ", current_right, target_right)
 
     image, resolution = sim.getVisionSensorImg(vision_sensor)
     image = np.frombuffer(image, dtype=np.uint8).reshape(resolution[1], resolution[0], 3)
@@ -90,29 +92,46 @@ while True:
     cv2.waitKey(1)
 
     #Save Training Images
-    if keyboard.is_pressed("d"): #Capures pictures of too far left when you press the right key
+    if keyboard.is_pressed("d") and not keyboard.is_pressed("w"): #Capures pictures of too far left when you press the right key
         leftCount = leftCount + 1
-        fileName = "Left/" + str(leftCount) + ".png"
+        fileName = "TestData/Left/" + str(leftCount) + ".png"
         cv2.imwrite(fileName,image)
         print("Left Image Saved")
 
-    if keyboard.is_pressed("a"): #Captures pictures of too far right when you press left key
+    if keyboard.is_pressed("a") and not keyboard.is_pressed("w"): #Captures pictures of too far right when you press left key
         rightCount = rightCount + 1
-        fileName = "Right/" + str(rightCount) + ".png"
+        fileName = "TestData/Right/" + str(rightCount) + ".png"
         cv2.imwrite(fileName,image)
         print("Right Image Saved")
 
-    '''
-    if keyboard.is_pressed("i"): 
-        centreCount = centreCount + 1 #Captures pictures when press
-        fileName = "Centre/" + str(centreCount) + ".png"
+    if keyboard.is_pressed("w") and not keyboard.is_pressed("a") and not keyboard.is_pressed("d"): 
+        centreCount = centreCount + 1 #Captures pictures when you press the w key
+        fileName = "TestData/Centre/" + str(centreCount) + ".png"
         cv2.imwrite(fileName,image)
         print("Centre Image Saved")
-    '''
 
+    if keyboard.is_pressed("w") and keyboard.is_pressed("a"): 
+        centreLeftCount = centreLeftCount + 1 #Captures pictures when you press the w and a key
+        fileName = "TestData/CentreLeft/" + str(centreLeftCount) + ".png"
+        cv2.imwrite(fileName,image)
+        print("CentreLeft Image Saved")
+
+    if keyboard.is_pressed("w") and keyboard.is_pressed("d"): 
+        centreRightCount = centreRightCount + 1 #Captures pictures when you press the w and a key
+        fileName = "TestData/CentreRight/" + str(centreRightCount) + ".png"
+        cv2.imwrite(fileName,image)
+        print("CentreLeft Image Saved")
+
+    totalData = leftCount + rightCount + centreCount + centreLeftCount + centreRightCount
+    print(totalData)
 
     #End Sim    
     if keyboard.is_pressed("esc"):
         stop()
         break
     time.sleep(dt)
+
+    #Get simulation time
+    dt = sim.getSimulationTimeStep()
+
+#https://colab.research.google.com/github/SalChem/Fastai-iNotes-iTutorials/blob/master/Image_Recognizer_Tutorial.ipynb
