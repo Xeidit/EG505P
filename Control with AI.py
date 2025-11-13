@@ -22,7 +22,13 @@ current_right = 0
 target_left = 0
 target_right = 0
 
-plt.ion()  # turning interactive mode o
+
+output = []
+fig, ax = plt.subplots()
+map = ax.scatter([],[])
+plt.ion()
+ax.set_xlim(-3, 3)
+ax.set_ylim(-3, 3)
 
 dt = 0.025
 
@@ -70,7 +76,7 @@ while True:
     label = np.argmax(results, axis=1)[0]
     acc = int(np.max(results, axis=1)[0]*100)   
 
-    print(f"Moving : {category_dict[label]} with {acc}% accuracy.")
+    #print(f"Moving : {category_dict[label]} with {acc}% accuracy.")
 
     if label == 0 or label == 1 or label == 2: #Go Forwards
         target_left = v_Max
@@ -105,12 +111,34 @@ while True:
     #Get data from sensors
     sim.handleProximitySensor(right_sensor) # Activate sensor
     result, distance, point, objHandle, normal = sim.readProximitySensor(right_sensor) # Retrieve data  
-    worldPoint = sim.multiplyVector(sim.getObjectMatrix(right_sensor, -1), point) # Make data into global coordinates
+
+    if result:
+        worldPoint = sim.multiplyVector(sim.getObjectMatrix(right_sensor, -1), point) # Make data into global coordinates
+        output.append(worldPoint[:2])
+        Data = np.array(output)
+        map.set_offsets(Data)
+        fig.canvas.draw()       
+        fig.canvas.flush_events()
+        plt.pause(0.01)
+
+    sim.handleProximitySensor(left_sensor) # Activate sensor
+    result, distance, point, objHandle, normal = sim.readProximitySensor(left_sensor) # Retrieve data  
+
+    if result:
+        worldPoint = sim.multiplyVector(sim.getObjectMatrix(left_sensor, -1), point) # Make data into global coordinates
+        output.append(worldPoint[:2])
+        Data = np.array(output)
+        map.set_offsets(Data)
+        fig.canvas.draw()       
+        fig.canvas.flush_events()
+        plt.pause(0.01)
 
 
-    print(point)
 
 
+    result = 0
     #Get simulation time
     dt = sim.getSimulationTimeStep()
+
+
 
