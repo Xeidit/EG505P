@@ -7,6 +7,7 @@ import pickle
 from keras.models import load_model
 import sys
 import os
+import matplotlib.pyplot as plt
 
 client = RemoteAPIClient()
 sim = client.getObject('sim')
@@ -21,6 +22,8 @@ current_right = 0
 target_left = 0
 target_right = 0
 
+plt.ion()  # turning interactive mode o
+
 dt = 0.025
 
 print("Connected")
@@ -28,6 +31,8 @@ print("Connected")
 left_motor = sim.getObject('/leftMotor')
 right_motor = sim.getObject('/rightMotor')
 vision_sensor = sim.getObject('/cam1')
+right_sensor = sim.getObject('/proxSensorRight')
+left_sensor = sim.getObject('/proxSensorLeft')
 
 #Load Model
 model = load_model("Models/Model0.87.h5")
@@ -96,6 +101,15 @@ while True:
 
     sim.setJointTargetVelocity(left_motor, current_left)
     sim.setJointTargetVelocity(right_motor, current_right)
+
+    #Get data from sensors
+    sim.handleProximitySensor(right_sensor) # Activate sensor
+    result, distance, point, objHandle, normal = sim.readProximitySensor(right_sensor) # Retrieve data  
+    worldPoint = sim.multiplyVector(sim.getObjectMatrix(right_sensor, -1), point) # Make data into global coordinates
+
+
+    print(point)
+
 
     #Get simulation time
     dt = sim.getSimulationTimeStep()
