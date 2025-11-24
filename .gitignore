@@ -5,3 +5,4 @@ target.npy
 **/*.png
 .venv
 tf-env
+.venv310

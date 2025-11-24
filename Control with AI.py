@@ -1,4 +1,4 @@
-
+import keyboard
 import time
 import numpy as np
 import cv2
@@ -9,10 +9,11 @@ import sys
 import os
 import matplotlib.pyplot as plt
 
+
 client = RemoteAPIClient()
 sim = client.getObject('sim')
 
-v_Max = 6 # Units/sec
+v_Max = 3 # Units/sec
 acceleration = 15 # Units/sec^2
 cornering_weight = 0.6
 min_corner_speed = 0.7
@@ -76,7 +77,7 @@ while True:
     label = np.argmax(results, axis=1)[0]
     acc = int(np.max(results, axis=1)[0]*100)   
 
-    #print(f"Moving : {category_dict[label]} with {acc}% accuracy.")
+    print(f"Moving : {category_dict[label]} with {acc}% accuracy.")
 
     if label == 0 or label == 1 or label == 2: #Go Forwards
         target_left = v_Max
@@ -108,6 +109,13 @@ while True:
     sim.setJointTargetVelocity(left_motor, current_left)
     sim.setJointTargetVelocity(right_motor, current_right)
 
+    if keyboard.is_pressed("esc"):
+        # Save to file
+        print("End")
+        np.save("sensor_data.npy", Data)
+        print("Data saved to sensor_data.npy")
+        break
+
     #Get data from sensors
     sim.handleProximitySensor(right_sensor) # Activate sensor
     result, distance, point, objHandle, normal = sim.readProximitySensor(right_sensor) # Retrieve data  
@@ -133,12 +141,8 @@ while True:
         fig.canvas.flush_events()
         plt.pause(0.01)
 
-
-
-
     result = 0
     #Get simulation time
     dt = sim.getSimulationTimeStep()
-
 
 

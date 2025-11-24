@@ -145,4 +145,3 @@ while True:
 
 
 
-#https://colab.research.google.com/github/SalChem/Fastai-iNotes-iTutorials/blob/master/Image_Recognizer_Tutorial.ipynb
