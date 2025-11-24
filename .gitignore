@@ -4,3 +4,4 @@ data.npy
 target.npy
 **/*.png
 .venv
+tf-env

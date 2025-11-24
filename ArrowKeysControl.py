@@ -15,6 +15,7 @@ current_right = 0
 target_left = 0
 target_right = 0
 
+#Initalise Time Step
 dt = 0.1
 
 print("Connected")

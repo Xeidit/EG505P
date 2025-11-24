@@ -22,7 +22,6 @@ current_right = 0
 target_left = 0
 target_right = 0
 
-
 output = []
 fig, ax = plt.subplots()
 map = ax.scatter([],[])
@@ -30,6 +29,7 @@ plt.ion()
 ax.set_xlim(-3, 3)
 ax.set_ylim(-3, 3)
 
+#Initalise Time Step
 dt = 0.025
 
 print("Connected")
