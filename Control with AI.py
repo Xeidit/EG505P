@@ -14,8 +14,8 @@ client = RemoteAPIClient()
 sim = client.getObject('sim')
 
 v_Max = 3 # Units/sec
-acceleration = 15 # Units/sec^2
-cornering_weight = 0.6
+acceleration = 10 # Units/sec^2
+cornering_weight = 0.8
 min_corner_speed = 0.7
 
 current_left = 0
@@ -24,7 +24,9 @@ target_left = 0
 target_right = 0
 
 output = []
+position = []
 fig, ax = plt.subplots()
+loc = ax.scatter([],[])
 map = ax.scatter([],[])
 plt.ion()
 ax.set_xlim(-3, 3)
@@ -40,6 +42,7 @@ right_motor = sim.getObject('/rightMotor')
 vision_sensor = sim.getObject('/cam1')
 right_sensor = sim.getObject('/proxSensorRight')
 left_sensor = sim.getObject('/proxSensorLeft')
+robot = sim.getObject('/PioneerP3DX')
 
 #Load Model
 model = load_model("Models/Model0.87.h5")
@@ -112,36 +115,40 @@ while True:
     if keyboard.is_pressed("esc"):
         # Save to file
         print("End")
-        np.save("sensor_data.npy", Data)
+        np.save("pos_data.npy", pos_data)
+        np.save("out_data.npy", output_data)
         print("Data saved to sensor_data.npy")
         break
 
-    #Get data from sensors
-    sim.handleProximitySensor(right_sensor) # Activate sensor
-    result, distance, point, objHandle, normal = sim.readProximitySensor(right_sensor) # Retrieve data  
+    #Plot Data
+    sim.handleProximitySensor(right_sensor)
+    result, distance, point, objHandle, normal = sim.readProximitySensor(right_sensor)
 
     if result:
-        worldPoint = sim.multiplyVector(sim.getObjectMatrix(right_sensor, -1), point) # Make data into global coordinates
+        worldPoint = sim.multiplyVector(sim.getObjectMatrix(right_sensor, -1), point)
         output.append(worldPoint[:2])
-        Data = np.array(output)
-        map.set_offsets(Data)
-        fig.canvas.draw()       
-        fig.canvas.flush_events()
-        plt.pause(0.01)
 
-    sim.handleProximitySensor(left_sensor) # Activate sensor
-    result, distance, point, objHandle, normal = sim.readProximitySensor(left_sensor) # Retrieve data  
-
+    sim.handleProximitySensor(left_sensor)
+    result, distance, point, objHandle, normal = sim.readProximitySensor(left_sensor)
     if result:
-        worldPoint = sim.multiplyVector(sim.getObjectMatrix(left_sensor, -1), point) # Make data into global coordinates
+        worldPoint = sim.multiplyVector(sim.getObjectMatrix(left_sensor, -1), point)
         output.append(worldPoint[:2])
-        Data = np.array(output)
-        map.set_offsets(Data)
-        fig.canvas.draw()       
-        fig.canvas.flush_events()
-        plt.pause(0.01)
 
+    current_position = sim.getObjectPosition(robot)
+    if result:
+        position.append(current_position[:2])  # Only X, Y
+
+    pos_data = np.array(position)
+    output_data = np.array(output)
+
+    map.set_offsets(output_data)
+    loc.set_offsets(pos_data)
+
+    fig.canvas.draw()
+    fig.canvas.flush_events()
+    plt.pause(0.01)
     result = 0
+
     #Get simulation time
     dt = sim.getSimulationTimeStep()
 
