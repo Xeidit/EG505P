@@ -15,15 +15,17 @@ sim = client.getObject('sim')
 
 v_Max = 3 # Units/sec
 acceleration = 10 # Units/sec^2
-cornering_weight = 0.8
-min_corner_speed = 0.7
+cornering_weight = 0.7 #How sensative cornering is
+min_corner_speed = 0.7 #Speed below when robot turns on the spot
 
+#Initalise speed variables
 current_left = 0
 current_right = 0
 target_left = 0
 target_right = 0
 
-output = []
+#Make plot
+sens_output = []
 position = []
 fig, ax = plt.subplots()
 loc = ax.scatter([],[])
@@ -33,10 +35,11 @@ ax.set_xlim(-3, 3)
 ax.set_ylim(-3, 3)
 
 #Initalise Time Step
-dt = 0.025
+dt = 0.050
 
 print("Connected")
 
+# Get robot components
 left_motor = sim.getObject('/leftMotor')
 right_motor = sim.getObject('/rightMotor')
 vision_sensor = sim.getObject('/cam1')
@@ -49,10 +52,7 @@ model = load_model("Models/Model0.87.h5")
 dict_file = open("pickledData.pkl", "rb")
 category_dict = pickle.load(dict_file)
 
-def stop():
-        current_left = 0 
-        current_right = 0
-
+#Smooth acceleration by ramping the velocity of the wheels
 def ramp_vel(current_vel,target_vel,ramp,dt):
     if current_vel < target_vel:
         current_vel += ramp*dt
@@ -62,26 +62,30 @@ def ramp_vel(current_vel,target_vel,ramp,dt):
         current_vel = max(current_vel,target_vel)
     return current_vel
 
-input_given = False
+input_given = False 
 
 while True:
+    #Get image from camera
     image, resolution = sim.getVisionSensorImg(vision_sensor)
     image = np.frombuffer(image, dtype=np.uint8).reshape(resolution[1], resolution[0], 3)
     image = cv2.flip(image, 0)  # Flip vertically
     cv2.imshow('Vision Sensor Feed', image)
     cv2.waitKey(1)
 
+    #Process image to something the AI can understand
     test_img = cv2.resize(image, (128, 64))
     test_img = cv2.cvtColor(test_img, cv2.COLOR_BGR2GRAY)
     test_img = test_img/255
     test_img = test_img.reshape(1, 128, 64, 1)
 
+    #Run model to predict correct direction
     results = model.predict(test_img)
     label = np.argmax(results, axis=1)[0]
     acc = int(np.max(results, axis=1)[0]*100)   
 
     print(f"Moving : {category_dict[label]} with {acc}% accuracy.")
 
+    #Move
     if label == 0 or label == 1 or label == 2: #Go Forwards
         target_left = v_Max
         target_right = v_Max
@@ -101,7 +105,7 @@ while True:
             target_left =  min_corner_speed
             target_right = - min_corner_speed
 
-    if input_given == False:
+    if input_given == False: # Robot slows down if there is no other input
         target_right = 0
         target_left = 0
         
@@ -112,39 +116,37 @@ while True:
     sim.setJointTargetVelocity(left_motor, current_left)
     sim.setJointTargetVelocity(right_motor, current_right)
 
+    #End file on keypress, this requires SUDO permissions 
     if keyboard.is_pressed("esc"):
         # Save to file
         print("End")
-        np.save("pos_data.npy", pos_data)
-        np.save("out_data.npy", output_data)
-        print("Data saved to sensor_data.npy")
         break
 
     #Plot Data
-    sim.handleProximitySensor(right_sensor)
-    result, distance, point, objHandle, normal = sim.readProximitySensor(right_sensor)
+    sim.handleProximitySensor(right_sensor) # Call right sensor to take a reading
+    result, distance, point, objHandle, normal = sim.readProximitySensor(right_sensor) #Get reading from right sensor
 
     if result:
-        worldPoint = sim.multiplyVector(sim.getObjectMatrix(right_sensor, -1), point)
-        output.append(worldPoint[:2])
+        worldPoint = sim.multiplyVector(sim.getObjectMatrix(right_sensor, -1), point) # If it gets a reading, make into global coordinates
+        sens_output.append(worldPoint[:2]) # Save to sensor output
 
-    sim.handleProximitySensor(left_sensor)
-    result, distance, point, objHandle, normal = sim.readProximitySensor(left_sensor)
+    sim.handleProximitySensor(left_sensor) # Call left sensor to take a reading
+    result, distance, point, objHandle, normal = sim.readProximitySensor(left_sensor) # Get reading from left sensor
     if result:
-        worldPoint = sim.multiplyVector(sim.getObjectMatrix(left_sensor, -1), point)
-        output.append(worldPoint[:2])
+        worldPoint = sim.multiplyVector(sim.getObjectMatrix(left_sensor, -1), point) # if it gets a reading make into global coordinates
+        sens_output.append(worldPoint[:2]) # save to sensor output
 
-    current_position = sim.getObjectPosition(robot)
+    current_position = sim.getObjectPosition(robot) # Get robot position, already in global coordinates
     if result:
-        position.append(current_position[:2])  # Only X, Y
+        position.append(current_position[:2])  # save it
 
-    pos_data = np.array(position)
-    output_data = np.array(output)
+    pos_data = np.array(position) # Make data into array
+    output_data = np.array(sens_output)
 
-    map.set_offsets(output_data)
+    map.set_offsets(output_data) #Add data to scatter graph
     loc.set_offsets(pos_data)
 
-    fig.canvas.draw()
+    fig.canvas.draw() # Update scatter graph
     fig.canvas.flush_events()
     plt.pause(0.01)
     result = 0
@@ -153,3 +155,16 @@ while True:
     dt = sim.getSimulationTimeStep()
 
 
+#Save data so robots can read it
+np.save("pos_data.npy", pos_data)
+np.save("out_data.npy", output_data)
+print("Data saved to sensor_data.npy")
+
+#Save data so humans can read it
+with open("map.txt", 'w') as map_txt:
+    for row in sens_output:
+        map_txt.write(str(row) + '\n')
+
+with open("location.txt", 'w') as loc_txt:
+    for row in position:
+        loc_txt.write(str(row) + '\n')

@@ -30,6 +30,7 @@ dt = 0.025
 print("Connected")
 print("Use arrow keys to control the robot. Press ESC to exit.")
 
+#Get robot parts
 left_motor = sim.getObject('/leftMotor')
 right_motor = sim.getObject('/rightMotor')
 vision_sensor = sim.getObject('/cam1')
@@ -38,6 +39,7 @@ def stop():
         current_left = 0 
         current_right = 0
 
+#Smooth acceleration by ramping the velocity of the wheels
 def ramp_vel(current_vel,target_vel,ramp,dt):
     if current_vel < target_vel:
         current_vel += ramp*dt
@@ -49,32 +51,33 @@ def ramp_vel(current_vel,target_vel,ramp,dt):
 
 input_given = False
 
+#define controls
 while True:
-    if keyboard.is_pressed("up") or keyboard.is_pressed("w"):
+    if keyboard.is_pressed("up") or keyboard.is_pressed("w"):# Go forward
         target_left = v_Max
         target_right = v_Max
         input_given = True
 
-    if keyboard.is_pressed("down") or keyboard.is_pressed("s"):
+    if keyboard.is_pressed("down") or keyboard.is_pressed("s"): #Reverse
         target_left = 0 - v_Max
         target_right = 0 - v_Max
         input_given = True
 
-    if keyboard.is_pressed("left") or keyboard.is_pressed("a"):
+    if keyboard.is_pressed("left") or keyboard.is_pressed("a"): #turn left
         target_left = target_left * (1-cornering_weight)
         input_given = True
         if target_left <= 0.8 and target_right <= 0.8:
             target_left = - min_corner_speed
             target_right = min_corner_speed
 
-    if keyboard.is_pressed("right") or keyboard.is_pressed("d"):
+    if keyboard.is_pressed("right") or keyboard.is_pressed("d"): #turn right
         target_right = target_right * (1-cornering_weight)   
         input_given = True
         if target_left <= 0.8 and target_right <= 0.8:
             target_left =  min_corner_speed
             target_right = - min_corner_speed
 
-    if input_given == False:
+    if input_given == False: # robot stops when there is not input
         target_right = 0
         target_left = 0
         
@@ -93,7 +96,7 @@ while True:
 
     cv2.waitKey(1)
 
-        #Display image
+    #Display image
     image = cv2.resize(image,(1024,512))
     cv2.imshow('Vision Sensor Feed', image)
 
@@ -120,7 +123,7 @@ while True:
         cv2.imwrite(fileName,image)
         print("Right Image Saved")
     '''
-    if not keyboard.is_pressed("p"):
+    if not keyboard.is_pressed("p"): #Only capture images if key p is pressed
         continue
 
     if keyboard.is_pressed("w") and not keyboard.is_pressed("a") and not keyboard.is_pressed("d") and centreCount <= (1.2*min(centreCount,centreLeftCount,centreRightCount)+50): 
